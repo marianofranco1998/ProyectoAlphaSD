@@ -46,13 +46,11 @@ public class ClientLauncher {
         // Star Multicast Listen Thread
         MCClientThread goMc = new MCClientThread(user, connectionData);
         goMc.start();
-
     }
 
     public static void main(String[] args) {
         // Start login GUI
         LoginGUI login = new LoginGUI();
-
     }
 }
 
@@ -106,6 +104,7 @@ class MCClientThread extends Thread {
             if(!parameters[0].equals("*")) {
                 game.placeComponents(Integer.parseInt(parameters[0]), Integer.parseInt(parameters[1]), Integer.parseInt(parameters[2]));
             } else {
+                System.out.println("Winner: " + parameters[1] + " on round: " + parameters[3]);
                 winner.placeComponents(parameters[1], parameters[2], parameters[3]);
             }
         }

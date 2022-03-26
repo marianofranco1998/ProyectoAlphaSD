@@ -55,9 +55,6 @@ public class GameGUI extends JFrame implements ActionListener {
 
         for(int i = 1; i < 10; i++){
             JCheckBox c = new JCheckBox("Celda " + i,i==j);
-            if(i==j) {
-                System.out.println("prendemos la celda" + i);
-            }
             c.addActionListener(this);
             c.setActionCommand(String.valueOf(i));
             grid.add(c);

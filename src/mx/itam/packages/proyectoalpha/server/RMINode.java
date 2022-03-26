@@ -2,6 +2,7 @@ package mx.itam.packages.proyectoalpha.server;
 
 import mx.itam.packages.proyectoalpha.interfaces.Authenticate;
 
+import java.io.PrintStream;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,11 +31,11 @@ public class RMINode implements Authenticate {
             newPlayer.add(user);
             this.lookup.put(user,newPlayer);
             for(int i = 1; i < round; i++) {
-                newPlayer.add("DNP");                               // User "did not play" in round i
+                newPlayer.add("0");                               // User "did not play" in round i
             }
+            newPlayer.add("0");
             this.lookup.put(user, newPlayer);                       // We add new a player to Hashmap
         }
-        System.out.println("authenticate");
         return this.connectionData;                             // We return player connection data
     }
 
@@ -45,15 +46,19 @@ public class RMINode implements Authenticate {
     public boolean addScore(String user) {
         ArrayList<String> player = this.lookup.get(user);
         int currentScore;
-        if (this.round >= player.size()) {
+        if (this.round > player.size() - 1) {
+            for(int i = 0; i < this.round - player.size() + 2; i++) {
+                player.add("0");
+            }
             currentScore = 1;
-            player.add(round,Integer.toString(currentScore));
+            player.add(this.round,Integer.toString(currentScore));
         } else {
-            currentScore = Integer.parseInt(player.get(round));
+            currentScore = Integer.parseInt(player.get(this.round));
+            currentScore += 1;
+            player.set(this.round,Integer.toString(currentScore));
         }
-        int newScore = (currentScore + 1);
-        player.set(round,Integer.toString(newScore));
-        return (newScore >= this.maxScore);
+        System.out.println(user + ": " + currentScore + " on round: " + round);
+        return (currentScore >= this.maxScore);
     }
 
     public String[] getConnectionData() {
@@ -70,7 +75,7 @@ public class RMINode implements Authenticate {
 
     public boolean remove(String monster) {
         int index = this.monsters.indexOf(monster);
-        if (index > 0) {
+        if (index >= 0) {
             this.monsters.remove(index);
             return true;
         } else {

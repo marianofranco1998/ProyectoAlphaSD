@@ -54,7 +54,6 @@ public class Deployer {
         try {
             ServerSocket listenSocket = new ServerSocket(Integer.parseInt(TCPPort));
             while (true) {
-                System.out.println("Waiting for messages...");
                 Socket clientSocket = listenSocket.accept();
                 TCPConnection c = new TCPConnection(engine, clientSocket);
                 c.start();
@@ -71,8 +70,6 @@ class TCPConnection extends Thread {
     private DataInputStream in;
     private Socket clientSocket;
     private final String[] connectionData;
-    private MulticastSocket socket;
-    private InetAddress group;
 
     public TCPConnection(RMINode engine, Socket aClientSocket) {
         // TCP
@@ -83,16 +80,7 @@ class TCPConnection extends Thread {
         } catch (IOException e) {
             System.out.println("Connection:" + e.getMessage());
         }
-        // Multicast
         this.connectionData = engine.getConnectionData();
-        this.socket = null;
-        try {
-            this.group = InetAddress.getByName(connectionData[1]);
-            socket = new MulticastSocket(Integer.parseInt(connectionData[2]));
-            socket.joinGroup(group);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public synchronized void run() {
@@ -130,13 +118,18 @@ class TCPConnection extends Thread {
     }
 
     public synchronized void sendWinner(String user, int maxScore) {
+        // Multicast
+        MulticastSocket socket = null;
         try {
+            InetAddress group = InetAddress.getByName(connectionData[1]);
+            socket = new MulticastSocket(Integer.parseInt(connectionData[2]));
+            socket.joinGroup(group);
             String winMessage = "*." + user + "." + maxScore + "." + engine.getRound()+ ".";
             byte[] m = winMessage.getBytes();
-            DatagramPacket messageOut = new DatagramPacket(m, m.length, this.group, Integer.parseInt(this.connectionData[2]));
-            this.socket.send(messageOut);
+            DatagramPacket messageOut = new DatagramPacket(m, m.length, group, Integer.parseInt(this.connectionData[2]));
+            socket.send(messageOut);
             engine.nextRound();
-            //this.socket.leaveGroup(group);
+            socket.leaveGroup(group);
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
